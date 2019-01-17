@@ -1,5 +1,4 @@
 <header>This is a header</header>
-
 <% if(!username) { %>
     <form action= "/urls/login" method= "POST">
         Name:
@@ -8,11 +7,9 @@
     </form>
 <% } else { %>
     <form action= "/urls/logout" method= "POST">
-        <button>Logout</button>
+        Name: <%= username %>
+    <button>logout</button>
     </form>
-<%} %>
-
-
-
+<% } %>
 
 

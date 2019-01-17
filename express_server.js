@@ -35,7 +35,7 @@ app.get("/urls/new", (req, res) => {  //new submission form - and the path /urls
 });
 
 app.get("/urls/:id", (req, res) => { //this will match the new form. 
-    let templateVars = { shortURL: req.params.id };
+    let templateVars = { username: req.cookies.username, shortURL: req.params.id };
     res.render("urls_show", templateVars);
 });
 
