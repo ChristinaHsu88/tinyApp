@@ -14,17 +14,25 @@ var urlDatabase = {
     "9sm5xK": "http://www.google.com"
 };
 
+var users = {
+    "123": {
+        id: "123", 
+        email: "123@123", 
+        password: "123"
+      }
+};
 
 app.get("/", (req, res) => {
     res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
-
+    //console.log(req.cookies["user_id"]);
+    //console.log(users);
     let templateVars = { 
         urls: urlDatabase,
-        username: req.cookies["username"] }; //set up the object for import
-
+        user: users[req.cookies["user_id"]] //set up the user object for search in users with certain user_id
+    }
     res.render("urls_index", templateVars);
 });
 
@@ -33,27 +41,84 @@ app.get("/urls.json", (req, res) => { //json the urlDatabase
 });
 
 app.get("/urls/new", (req, res) => {  //new submission form - and the path /urls/new actually matches the /urls/:id pattern 
-    res.render("urls_new");
+    var user_id = { user: users[req.cookies["user_id"]] };
+    if (user_id === undefined) {
+        res.redirect("/login");
+    }
+    // if (req.body.id != req.cookies["user_id"] {
+    //     res.redirect("/login");
+    // }
+    res.render("urls_new", user_id);
 });
 
 app.get("/urls/:id", (req, res) => { //this will match the new form. 
-
     var id = req.params.id;
+    let tVars = { user: users[req.cookies["user_id"]], url: urlDatabase[id], shortURL: req.params.id };
+    res.render("urls_show", tVars);
+    
+});
 
-    let templateVars = { username: req.cookies.username, url: urlDatabase[id], shortURL: req.params.id };
+app.get("/register", (req, res) => {
+    var user_id = { user: users[req.cookies["user_id"]] };
+    res.render("register", user_id);
+    
+});
 
-    res.render("urls_show", templateVars);
+app.post("/register", (req, res) => {
+    var randomId = generateRandomString();
+    var password = req.body.password;
+    var email = req.body.email;
+    
+    for (var id in users) {
+       if (users[id].email === email) { 
+            return res.send("400");
+        } 
+    }
+    if (!password || !email) {
+        return res.send("400");
+    }
+    users[randomId] = {id: randomId, email: email, password: password};
+    res.cookie("user_id", randomId); //set up randomId with key 'user_id'
+    res.redirect("/urls");
+    
+});
+
+app.get("/login", (req, res) => {
+    var user_id = { 
+        user: users[req.cookies["user_id"]], //pointing to the entire user_id object
+    };
+    res.render("login", user_id);
+    
 });
 
 
-app.post("/urls/login", (req, res) => {
-    var userName = req.body;
-    res.cookie('username', userName["loginInfo"]);
+
+app.post("/login", (req, res) => {
+    // get email and password from body.
+    // find out if there is a user with that email.
+    // if there is not: 403, we're done.
+    // if there is, but the passwords don't match: 403, we're done.
+    // Otherwise, log that user in & redirect to /urls
+   
+    for (let count in users) {
+        if (req.body.email === users[count].email) {
+            if (users[count].password === req.body.password) {
+                res.cookie("user_id", users[count].id);
+                res.redirect("/");
+            } else {
+                res.send("wrong password! for" + req.body.email);
+            }
+        }  
+    }
     res.redirect("/urls");
 });
 
-app.post("/urls/logout", (req, res) => {
-    res.clearCookie("username");
+app.get("/logout", (req, res) => {
+    res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+    res.clearCookie("user_id");
     res.redirect("/urls");
 });
 
@@ -73,10 +138,15 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => { //if /path/: exist already. need another action name under get method 
+    var user_id = { user: users[req.cookies["user_id"]] };
     //console.log(req.params.shortURL);
     let longURL = urlDatabase[req.params.shortURL]; //use shortURL because the server know the shortURL name already.
                                                     //see/u/:shortURL 
     res.redirect(longURL);
+    let templateVars = { 
+        urls: urlDatabase,
+        user: users[req.cookies["user_id"]] //set up the user object for search in users with certain user_id
+    }
 
 })
 

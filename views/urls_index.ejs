@@ -8,9 +8,8 @@
     <% for(var header in urls) { %>
         <li><%= header + ': ' + urls[header] %></li> 
         <form method = "post" action = "/urls/<%= header %>/delete">
-            <a href = 'edit'>Edit</a> 
-            <button>Delete</button>
-        </form>
+        <a href = 'edit'>Edit</a> <button>Delete</button>
+        </form> 
         <% } %>
     <a href = '#'></a>
 </body>

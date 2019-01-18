@@ -1,15 +1,14 @@
-<header>This is a header</header>
-<% if(!username) { %>
-    <form action= "/urls/login" method= "POST">
-        Name:
-        <input id="login" type="text" name="loginInfo" style="width: 100px" placeholder="userName">
-        <input type="submit" value="Submit">
-    </form>
-<% } else { %>
-    <form action= "/urls/logout" method= "POST">
-        Name: <%= username %>
-    <button>logout</button>
-    </form>
-<% } %>
+<header><b>Welcome!</b></header>
+<% if(!user) { %>
+    <a href="/register">Register Here!</a>
+<% } %> 
 
+<p>Already have an account? <a href="/login">Login Here</a></p>
+
+<% if(user) { %>
+    <p> <%= user.id %> <p> 
+    <form method = "post" action = "/logout">
+        <a href = "/urls"><button>Logout</button></a>
+        </form> 
+<% } %> 
 

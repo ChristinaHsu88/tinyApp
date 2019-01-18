@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  
+    <% include ./partials/_header %>
+ </head>  
+ <body style="font-size:20px; padding:50px;">
+    <form method= "POST" action="/register">
+        <p>
+            <label>Username</label>
+            <input type="text" name="username">
+        </p>
+        <p>
+            <label>Password</label>
+            <input type="password" name="password">
+        </p>
+        <p>
+            <label>Email</label>
+            <input type="text" name="email" placeholder="xyz@gmail.com">
+        </p>
+        <p>
+            <input type="submit" name="Register" value="Create account">
+        </p>
+    
+    </form>
+  </body>
+</html>
