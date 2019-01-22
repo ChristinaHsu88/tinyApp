@@ -37,7 +37,7 @@ var users = {
 };
 
 
-
+//a function that extracts a user's information based on the session cookie id
 function urlsForUser(id){
     let subsetUrls = {}
     for (var index in urlDatabase2) {
@@ -49,7 +49,7 @@ function urlsForUser(id){
     return subsetUrls;
 }
 
-
+//a function that checks the encrypted password
 function checkPw(email, password) {
     for(var index2 in users) {
         let user = users[index2];
@@ -63,7 +63,9 @@ app.get("/", (req, res) => {
     res.send("Hello!");
 });
 
+//urls page displaying all the existing urls
 app.get("/urls", (req, res) => {
+    //asking user to login if he/she hasn't yet
     if (req.session.user_id === false) {
         return res.redirect("/login");
     }
@@ -75,11 +77,11 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
 });
 
-app.get("/urls.json", (req, res) => { //json the urlDatabase
+app.get("/urls.json", (req, res) => { 
     res.json(urlDatabase2);
 });
 
-app.get("/urls/new", (req, res) => {  //new submission form 
+app.get("/urls/new", (req, res) => { 
     if (req.session.user_id === false) {
         return res.redirect("/login");
     }
@@ -98,26 +100,21 @@ app.get("/urls/:id", (req, res) => {
             res.send("this page doesn't belong to you!")
         }
     res.render("urls_show", tVars);
-
 });
 
 app.get("/register", (req, res) => {
     var user_id = { user: users[req.session.user_id]};
     res.render("register", user_id);
-
 });
 
-app.post("/register", (req, res) => { //set up cookie and randomID
+app.post("/register", (req, res) => {
     var randomId = generateRandomString();
-   
-
     var password = bcrypt.hashSync(req.body.password, 10);
     var email = req.body.email;
-
+    //creating user info object based on the registration information
     users[randomId] = {id: randomId, email: email, password: password};
     req.session.user_id = randomId
     res.redirect("/urls");
-
 });
 
 app.get("/login", (req, res) => {
@@ -125,7 +122,6 @@ app.get("/login", (req, res) => {
         user: users[req.session.user_id], 
     };
     res.render("login", user_id);
-
 });
 
 
@@ -140,17 +136,6 @@ app.post("/login", (req, res) => {
 
         res.render("/login");
     }
-    
-    // for (let count in users) {
-    //     if (req.body.email === users[count].email) {
-    //         if (users[count].password === req.body.password) {
-    //             res.cookie("user_id", users[count].id);
-    //             res.redirect("/urls");
-    //         } else {
-    //             res.send("wrong password! for" + req.body.email);
-    //         }
-    //     }
-    // }
     res.redirect("/urls");
 });
 
@@ -159,10 +144,9 @@ app.get("/logout", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie(req.session.user_id);
+    res.clearCookie();
     res.redirect("/urls");
 });
-
 
 app.post("/urls", (req, res) => {
     var shortUrl = generateRandomString();
@@ -171,7 +155,6 @@ app.post("/urls", (req, res) => {
         longURL: req.body["longURL"],
         user_id: req.session.user_id
     }
-
     res.redirect("/urls/"+ shortUrl); 
 });
 
@@ -182,16 +165,8 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-
-    //get the longurl 
-    let longURL1 = urlDatabase2[req.params.shortURL];
+    let longURL1 = urlDatabase2[req.params.shortURL].longURL;
     res.redirect(longURL1);
-
-    let longURL = urlDatabase2[req.session.user_id];
-    let templateVars = {
-        user: users[req.session.user_id] //set up the user object for search in users with certain user_id
-    }
-    res.redirect(longURL);
 })
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -201,7 +176,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-    urlDatabase2[req.session.user_id]
+    urlDatabase2[req.session.user_id];
         if (!req.session.user_id) {
             return res.redirect("/urls");
         };
@@ -215,5 +190,4 @@ function generateRandomString() {
     var randomString = Math.random().toString(36).substring(7);
     return randomString;
 }
-
 generateRandomString();
