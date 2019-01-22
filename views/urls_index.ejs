@@ -4,13 +4,17 @@
   <title>TinyApp</title>
 </head>
 <body>
-    <% include ./partials/_header %>
-    <% for(var header in urls) { %>
-        <li><%= header + ': ' + urls[header] %></li> 
-        <form method = "post" action = "/urls/<%= header %>/delete">
-        <a href = 'edit'>Edit</a> <button>Delete</button>
-        </form> 
+         <% include ./partials/_header %>
+         <% for(var header in urls) { %>
+            <li><%= header + ': ' + urls[header].longURL %></li>
+
+            <form method = "post" action = "/urls/<%= header %>/delete">
+
+            <a href = 'edit'>Edit</a> <button>Delete</button>
+
+            </form>
         <% } %>
-    <a href = '#'></a>
+
+    <a href = "/urls/new">Let's create an URL!</a>
 </body>
 </html>

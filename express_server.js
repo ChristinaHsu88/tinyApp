@@ -1,115 +1,156 @@
 var express = require("express");
 var app = express();
-var PORT = 8080; 
+var PORT = 8080;
 const bodyParser = require("body-parser");
-const cookie = require("cookie-parser");
+const cookieSession = require("cookie-session");
+const bcrypt = require("bcrypt");
 
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookie());
+app.use(cookieSession ({
+    name: 'session',
+    keys: ['demo'],
+    maxAge: 24 * 60 * 60 * 1000
+}))
 
-var urlDatabase = {
-    "b2xVn2": "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com"
-};
+var urlDatabase2 = {
+    abc123:{
+         shortURL: 'abc123',
+         longURL: 'http://www.google.com',
+         user_id: 'user1'
+     },
+     def456:{
+         shortURL: 'def456',
+         longURL: 'http://www.bing.com',
+         user_id: 'notuser1'
+     }
+ };
+
 
 var users = {
-    "123": {
-        id: "123", 
-        email: "123@123", 
+    "user1": {
+        id: "user1",
+        email: "frank@gmail.com",
         password: "123"
       }
 };
+
+
+
+function urlsForUser(id){
+    let subsetUrls = {}
+    for (var index in urlDatabase2) {
+        let url = urlDatabase2[index]; 
+        if (url.user_id === id) {
+            subsetUrls[index] = url;
+        }
+    }
+    return subsetUrls;
+}
+
+
+function checkPw(email, password) {
+    for(var index2 in users) {
+        let user = users[index2];
+        if(user.email === email && bcrypt.compareSync(password, user.password)) {
+            return index2;
+        }
+    }
+}
 
 app.get("/", (req, res) => {
     res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
-    //console.log(req.cookies["user_id"]);
-    //console.log(users);
-    let templateVars = { 
-        urls: urlDatabase,
-        user: users[req.cookies["user_id"]] //set up the user object for search in users with certain user_id
+    if (req.session.user_id === false) {
+        return res.redirect("/login");
+    }
+    let userURL = urlsForUser(req.session.user_id);
+    let templateVars = {
+        urls: userURL,
+        user: users[req.session.user_id],
     }
     res.render("urls_index", templateVars);
 });
 
 app.get("/urls.json", (req, res) => { //json the urlDatabase
-    res.json(urlDatabase);
+    res.json(urlDatabase2);
 });
 
-app.get("/urls/new", (req, res) => {  //new submission form - and the path /urls/new actually matches the /urls/:id pattern 
-    var user_id = { user: users[req.cookies["user_id"]] };
-    if (user_id === undefined) {
-        res.redirect("/login");
+app.get("/urls/new", (req, res) => {  //new submission form 
+    if (req.session.user_id === false) {
+        return res.redirect("/login");
     }
-    // if (req.body.id != req.cookies["user_id"] {
-    //     res.redirect("/login");
-    // }
+    var user_id = { user: users[req.session.user_id] };
     res.render("urls_new", user_id);
 });
 
-app.get("/urls/:id", (req, res) => { //this will match the new form. 
+app.get("/urls/:id", (req, res) => {
     var id = req.params.id;
-    let tVars = { user: users[req.cookies["user_id"]], url: urlDatabase[id], shortURL: req.params.id };
+    let tVars = { 
+        user: users[req.session.user_id], 
+        url: urlDatabase2[req.params.id].longURL,
+        shortURL: req.params.id 
+    };
+        if (!req.session.user_id) {
+            res.send("this page doesn't belong to you!")
+        }
     res.render("urls_show", tVars);
-    
+
 });
 
 app.get("/register", (req, res) => {
-    var user_id = { user: users[req.cookies["user_id"]] };
+    var user_id = { user: users[req.session.user_id]};
     res.render("register", user_id);
-    
+
 });
 
-app.post("/register", (req, res) => {
+app.post("/register", (req, res) => { //set up cookie and randomID
     var randomId = generateRandomString();
-    var password = req.body.password;
+   
+
+    var password = bcrypt.hashSync(req.body.password, 10);
     var email = req.body.email;
-    
-    for (var id in users) {
-       if (users[id].email === email) { 
-            return res.send("400");
-        } 
-    }
-    if (!password || !email) {
-        return res.send("400");
-    }
+
     users[randomId] = {id: randomId, email: email, password: password};
-    res.cookie("user_id", randomId); //set up randomId with key 'user_id'
+    req.session.user_id = randomId
     res.redirect("/urls");
-    
+
 });
 
 app.get("/login", (req, res) => {
-    var user_id = { 
-        user: users[req.cookies["user_id"]], //pointing to the entire user_id object
+    var user_id = {
+        user: users[req.session.user_id], 
     };
     res.render("login", user_id);
-    
+
 });
 
 
 
 app.post("/login", (req, res) => {
-    // get email and password from body.
-    // find out if there is a user with that email.
-    // if there is not: 403, we're done.
-    // if there is, but the passwords don't match: 403, we're done.
-    // Otherwise, log that user in & redirect to /urls
-   
-    for (let count in users) {
-        if (req.body.email === users[count].email) {
-            if (users[count].password === req.body.password) {
-                res.cookie("user_id", users[count].id);
-                res.redirect("/");
-            } else {
-                res.send("wrong password! for" + req.body.email);
-            }
-        }  
+    var user = checkPw(email, password)
+    if (user) {
+        res.cookie('email', users[req.session.user_id].email);
+
+        res.redirect("/");
+    } else {
+
+        res.render("/login");
     }
+    
+    // for (let count in users) {
+    //     if (req.body.email === users[count].email) {
+    //         if (users[count].password === req.body.password) {
+    //             res.cookie("user_id", users[count].id);
+    //             res.redirect("/urls");
+    //         } else {
+    //             res.send("wrong password! for" + req.body.email);
+    //         }
+    //     }
+    // }
     res.redirect("/urls");
 });
 
@@ -118,50 +159,54 @@ app.get("/logout", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie("user_id");
+    res.clearCookie(req.session.user_id);
     res.redirect("/urls");
 });
 
+
 app.post("/urls", (req, res) => {
-    //console.log(req.body);      // debug statement to see POST parameters
     var shortUrl = generateRandomString();
-    //console.log("/urls/"+ shortUrl);
-    urlDatabase[shortUrl] = req.body["longURL"]; //generating a key with value within the object
-    //res.send("Ok");         // Respond with 'Ok' (we will replace this)
-    res.redirect("/u/"+ shortUrl); //redirect to the :id page part. use /u/ so not to confuse with /urls/:id
-  });
+    urlDatabase2[shortUrl] = {
+        shortURL: shortUrl,
+        longURL: req.body["longURL"],
+        user_id: req.session.user_id
+    }
+
+    res.redirect("/urls/"+ shortUrl); 
+});
 
 
 app.get("/hello", (req, res) => {
     let templateVars = { greeting: 'Hello World!'};
-    res.render("hello_world", templateVars);  //render the "hello_world" file, with the value stored in templateVars
+    res.render("hello_world", templateVars);
 });
 
-app.get("/u/:shortURL", (req, res) => { //if /path/: exist already. need another action name under get method 
-    var user_id = { user: users[req.cookies["user_id"]] };
-    //console.log(req.params.shortURL);
-    let longURL = urlDatabase[req.params.shortURL]; //use shortURL because the server know the shortURL name already.
-                                                    //see/u/:shortURL 
-    res.redirect(longURL);
-    let templateVars = { 
-        urls: urlDatabase,
-        user: users[req.cookies["user_id"]] //set up the user object for search in users with certain user_id
-    }
+app.get("/u/:shortURL", (req, res) => {
 
+    //get the longurl 
+    let longURL1 = urlDatabase2[req.params.shortURL];
+    res.redirect(longURL1);
+
+    let longURL = urlDatabase2[req.session.user_id];
+    let templateVars = {
+        user: users[req.session.user_id] //set up the user object for search in users with certain user_id
+    }
+    res.redirect(longURL);
 })
 
 app.post("/urls/:id/delete", (req, res) => {
-    const id = req.params.id; //id corresponds to the path above
-    delete urlDatabase[id]; //get the data from id variable.
+    const id = req.session.user_id; 
+    delete urlDatabase2[req.session.user_id]; 
     res.redirect("/urls");
 });
 
 app.post("/urls/:id", (req, res) => {
-    var update = req.body.input;
-    var id = req.params.id;
-    urlDatabase[id] = update;
-    res.redirect("/urls");
+    urlDatabase2[req.session.user_id]
+        if (!req.session.user_id) {
+            return res.redirect("/urls");
+        };
 });
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}!`);
 });
