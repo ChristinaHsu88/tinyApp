@@ -5,16 +5,18 @@
 </head>
 <body>
          <% include ./partials/_header %>
-         <% for(var header in urls) { %>
-            <li><%= header + ': ' + urls[header].longURL %></li>
 
-            <form method = "post" action = "/urls/<%= header %>/delete">
+         <br><br>&nbsp&nbsp&nbsp&nbsp&nbsp<b>Short Urls:</b>&nbsp<b>long Urls</b>
+                <% for(var index in allUrl) { %>
+                    <li><%= index + ': ' + allUrl[index].longURL %> 
+                    <a href = "/urls/<%= index %>">Edit</a>
+                    <form method = "POST" action = "/urls/<%= index %>/delete"><button>Delete</button></form>
+                    </li>
+                <% } %>
+         </p>
+       
 
-            <a href = 'edit'>Edit</a> <button>Delete</button>
+    <a href = "/urls/new">Let's create an URL!*</a> 
 
-            </form>
-        <% } %>
-
-    <a href = "/urls/new">Let's create an URL!</a>
 </body>
 </html>
