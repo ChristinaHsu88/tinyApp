@@ -5,11 +5,15 @@
   <title>TinyApp</title>
 </head>
 <body>
-    <form action="/urls/<%= shortURL %>" method="POST" style="margin:150px;">
-      <label for="input">ShortURL: <b><%= shortURL %></b> </label><br>
-      <input id="input" type="text" name="url" placeholder= "https://" style="width: 300px" value="<%= url %>">
+    
+    <form action="/urls" method="POST" style="margin:150px;">
+      Your short url is <b><%= shortURL %> </b>, which is for <b><%= url %></b>.<br>
+      <label for="UpdatedUrl">Update your urls:</label>
+      <input id="UpdatedUrl" type="text" name="UpdatedUrl" placeholder="http://" style="width: 300px" value="<%= url %>">
       <input type="submit" value="Submit">
     </form>
+
+    
 </body>
 </html>
 
