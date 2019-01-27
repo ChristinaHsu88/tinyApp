@@ -1,14 +1,14 @@
 <header><b>Welcome!</b></header>
 <% if(!user) { %>
-    <a href="/register">Register Here!</a>
+    
+<p>Already a member? <a href="/login">Login Here</a></p>
+<p>Let's register!<a href="/register">Register Here!</a></p>
 <% } %> 
-
-<p>Already have an account? <a href="/login">Login Here</a></p>
-
 <% if(user) { %>
-    <p> <%= user.id %> <p> 
-    <form method = "post" action = "/logout">
+    <p> <b>Your user ID: </b><%= user.id %> <p> 
+    <p> <b>Your email address: </b><%= user.email %></p>
+    <form method = "POST" action = "/logout">
         <a href = "/urls"><button>Logout</button></a>
-        </form> 
+    </form> 
 <% } %> 
 
