@@ -8,11 +8,19 @@ const bcrypt = require("bcrypt");
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieSession ({
+app.use(cookieSession({
     name: 'session',
     keys: ['demo'],
     maxAge: 24 * 60 * 60 * 1000
 }))
+
+// Middle that sets user on every view
+app.use((req, res, next) => {
+    const user = users[req.session.user_id];
+    res.locals = { user };
+    req.user = user;
+    next();
+})
 
 var urlDatabase2 = {
     abc123:{
@@ -33,8 +41,22 @@ var users = {
         id: "user1",
         email: "frank@gmail.com",
         password: "123"
-      }
+    },
+    "x4atvv": {
+        id: 'x4atvv',
+        email: 'foo@gmail.com',
+        password: '$2b$10$LHTkTGA/VpMs/3Mc19wmoOTn0vZ5pGmXxZgx/my/vQGZHk.ODHXXm'
+    }
 };
+
+//checking the user if it's logged in
+function protectedRoute(req, res, next) {
+    if (req.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
 
 
 //A function that extracts a user's information based on the session cookie id
@@ -51,12 +73,12 @@ function urlsForUser(id){
 
 //A function that checks the encrypted password
 function checkPw(email, password) {
-    for(var index2 in users) {
-        let user = users[index2];
-        if(user.email === email && bcrypt.compareSync(password, user.password)) {
-            return index2;
-        } 
-    }
+    
+    return Object.values(users).filter((user) => {
+        if (user.email === email && bcrypt.compareSync(password, user.password)) {
+            return user;
+        }
+    })[0]
 }
 
 app.get("/", (req, res) => {
@@ -65,18 +87,9 @@ app.get("/", (req, res) => {
 
 
 //display information depending if the user is logged in
-app.get("/urls", (req, res) => {
-    if (!users[req.session.user_id]) {
-        return res.redirect("/login");
-    }
-    let userURL = urlsForUser(req.session.user_id);
-        let templateVars = {
-            urls: userURL,
-            user: users[req.session.user_id], 
-            allUrl: urlDatabase2 
-        }
-        res.render("urls_index", templateVars);
-      
+app.get("/urls", protectedRoute, (req, res) => {
+    const urls = urlsForUser(req.user.id);
+    res.render("urls_index", { urls });           
 });
 
 app.get("/urls.json", (req, res) => { 
@@ -85,11 +98,10 @@ app.get("/urls.json", (req, res) => {
 
 //only log in members can add new urls
 app.get("/urls/new", (req, res) => { 
-    var user_id = { user: users[req.session.user_id]};
-    if(!users[req.session.user_id]) {
-        return res.redirect("/login");
+    if(req.user) {
+        res.render("urls_new");
     } else {
-        res.render("urls_new", user_id);
+        res.redirect("/login");
     }
 });
 
@@ -101,9 +113,9 @@ app.get("/urls/:id", (req, res) => {
         shortURL: req.params.id 
     };
 
-        if (users[req.session.user_id] === undefined) {
-            res.send("this page doesn't belong to you!")
-        }
+    if (users[req.session.user_id] === undefined) {
+        res.send("this page doesn't belong to you!")
+    }
     res.render("urls_show", tVars);
 });
 
@@ -121,6 +133,8 @@ app.post("/register", (req, res) => {
     //creating user info object based on the registration information
     users[randomId] = {id: randomId, email: email, password: password};
     req.session.user_id = randomId;
+
+    console.log(users[randomId]);
     if (email === false || password === false) {
         res.send("please enter valid information");
     }   
@@ -136,12 +150,11 @@ app.get("/login", (req, res) => {
 
 //verify user information
 app.post("/login", (req, res) => {
-    var email = req.body.email;
-    var password = req.body.password;
-    var user = checkPw(email, password);
+    const { email, password } = req.body;
+    const user = checkPw(email, password);
     if (user) {
-        res.cookie('email', users[req.session.user_id].email);
-        res.redirect("/");
+        req.session.user_id = user.id;
+        res.redirect("/urls");
     } else {
         return res.send("Please enter correct information, including both the email and password, or register a new account!");
     }
@@ -189,10 +202,16 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => { 
-    urlDatabase2[req.session.user_id];
-        if (!req.session.user_id) {
-            res.redirect("/urls");
-        };
+    const user = users[req.session.user_id];
+    if (req.session.user_id) {
+        const { id } = req.params;
+        const { url } = req.body;
+        const record = urlDatabase2[id];
+        record.longURL = url;
+        res.redirect("/urls");
+    } else {
+        res.redirect("/urls");
+    }
 });
 
 app.listen(PORT, () => {
