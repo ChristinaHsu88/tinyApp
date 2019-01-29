@@ -7,10 +7,12 @@
          <% include ./partials/_header %>
 
          <br><br>&nbsp&nbsp&nbsp&nbsp&nbsp<b>Short Urls:</b>&nbsp<b>long Urls</b>
-                <% for(var index in allUrl) { %>
-                    <li><%= index + ': ' + allUrl[index].longURL %> 
-                    <a href = "/urls/<%= index %>">Edit</a>
-                    <form method = "POST" action = "/urls/<%= index %>/delete"><button>Delete</button></form>
+                <% for(var key in urls) { %>
+                    <li><%= key + ': ' + urls[key].longURL %> 
+                    <a href = "/urls/<%= key %>">Edit</a>
+                    <form method = "POST" action = "/urls/<%= key %>/delete" style="display: inline-block">
+                        <button>Delete</button>
+                    </form>
                     </li>
                 <% } %>
          </p>
