@@ -6,14 +6,13 @@
 </head>
 <body>
     
-    <form action="/urls" method="POST" style="margin:150px;">
+    <form action="<%= "/urls/" + shortURL %>" method="POST" style="margin:150px;">
       Your short url is <b><%= shortURL %> </b>, which is for <b><%= url %></b>.<br>
       <label for="UpdatedUrl">Update your urls:</label>
-      <input id="UpdatedUrl" type="text" name="UpdatedUrl" placeholder="http://" style="width: 300px" value="<%= url %>">
-      <input type="submit" value="Submit">
+      <input id="UpdatedUrl" value="<%= url %>" type="text" name="url" placeholder="http://" style="width: 300px">
+      <input type="submit" value="Update">
     </form>
 
     
 </body>
 </html>
-
