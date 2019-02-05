@@ -24,5 +24,5 @@ Urls edit page
   Node.js
 
 ## Getting Started
-  Install all dependencies. Run npm -i </br>
-  Start the server. Run node express_server.js 
+  Install all dependencies (Run `npm -i` command). </br>
+  Start the server using the `node express_server.js` command.
