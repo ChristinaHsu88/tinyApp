@@ -19,7 +19,7 @@ A full stack web application built with an HTTP Server that handles requests fro
 * EJS
 * Node.js
 
-# SCREENSHOTS
+## SCREENSHOTS
 * Login/Logout Page
 !["user-login demo"](https://github.com/ChristinaHsu88/tinyApp/blob/master/docs/user-login.png)
 
