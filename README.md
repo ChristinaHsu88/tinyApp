@@ -1,7 +1,12 @@
 # TinyApp
 A full stack web application built with Node and Express that allows users to shorten longURLs and share with non- registered users (a la bit.ly).
 
-## Getting Started
+## FUNCTIONALITIES
+* Upon registration, users are able to log in and log out.  
+* Non-registered users are able to visit sites via shortened links.
+
+
+## GETTING STARTED
 1. Clone this repository by running `git clone git@github.com:ChristinaHsu88/tinyApp.git ` command.
 2. Install dependencies using the `npm install` command.
 3. Start the web server using the `npm run local` command. 
