@@ -1,5 +1,6 @@
 # TINYAPP
-A full stack web application built with Node and Express that allows users to shorten longURLs and share with non- registered users (a la bit.ly).
+A full stack web application built with an HTTP Server that handles requests from the browse(client) and allows users to shorten longURLs and share with non-registered users (a la bit.ly). 
+
 
 ## FUNCTIONALITIES
 * Upon registration, users are able to log in and log out.  
